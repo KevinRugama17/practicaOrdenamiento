@@ -18,7 +18,18 @@ public class ListaEnlazada {
     public ListaEnlazada() {
         this.cabeza = null;
     }
- 
+  public void insertar(String texto, int dato) {
+        Nodo nuevo = new Nodo(texto, dato);
+        if (cabeza == null) {
+            cabeza = nuevo;
+        } else {
+            Nodo actual = cabeza;
+            while (actual.siguiente != null) {
+                actual = actual.siguiente;
+            }
+            actual.siguiente = nuevo;
+        }
+    }
        public void setOrdenarPorTexto(boolean ordenarPorTexto) {
         this.ordenarPorTexto = ordenarPorTexto;
     }

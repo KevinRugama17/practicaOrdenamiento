@@ -1,147 +1,242 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
- */
 package com.mycompany.algoritmoordenamientokevin.Controlador;
 
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.BurbujaMejoradaSort;
 import com.mycompany.algoritmoordenamientokevin.ordenamiento.BurbujaSort;
 import com.mycompany.algoritmoordenamientokevin.ordenamiento.GnomeSort;
 import com.mycompany.algoritmoordenamientokevin.ordenamiento.ListaEnlazada;
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.MergeSort;
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.Nodo;
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.QuickSort;
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.RadixSort;
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.SeleccionIntercambioSort;
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.SeleccionLinealSort;
+import com.mycompany.algoritmoordenamientokevin.ordenamiento.ShellSort;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.FileChooser;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.File;
 import java.io.IOException;
-/**
- * FXML Controller class
- *
- * @author kevin
- */
-public class MainViewController{
- 
 
-    // Componentes inyectados desde el FXML
-    @FXML private TableView<Registro> tablaOriginal;
-    @FXML private TableView<Registro> tablaOrdenada;
-    @FXML private TableColumn<Registro, String> colRegionOrig;
+public class MainViewController {
+
+    // ── Tablas ────────────────────────────────────────────────────────────────
+    @FXML private TableView<Registro>            tablaOriginal;
+    @FXML private TableView<Registro>            tablaOrdenada;
+    @FXML private TableColumn<Registro, String>  colRegionOrig;
     @FXML private TableColumn<Registro, Integer> colUnitsOrig;
-    @FXML private TableColumn<Registro, String> colRegionOrd;
+    @FXML private TableColumn<Registro, String>  colRegionOrd;
     @FXML private TableColumn<Registro, Integer> colUnitsOrd;
 
+    // ── Combos ────────────────────────────────────────────────────────────────
     @FXML private ComboBox<String> comboArchivo;
     @FXML private ComboBox<String> comboAlgoritmo;
     @FXML private ComboBox<String> comboColumna;
     @FXML private ComboBox<String> comboDireccion;
 
+    // ── Etiquetas ─────────────────────────────────────────────────────────────
     @FXML private Label lblStatus;
     @FXML private Label lblIteraciones;
     @FXML private Label lblTiempo;
 
-    // Listas nativas de JavaFX (Paquete: javafx.collections)
-    private ObservableList<Registro> datosOriginales = FXCollections.observableArrayList();
-    private ObservableList<Registro> datosOrdenados = FXCollections.observableArrayList();
+    // ── Datos ─────────────────────────────────────────────────────────────────
+    private final ObservableList<Registro> datosOriginales = FXCollections.observableArrayList();
+    private final ObservableList<Registro> datosOrdenados  = FXCollections.observableArrayList();
 
-    // TU ESTRUCTURA PROPIA para mantener la referencia original sin java.util
-    private ListaEnlazada listaDatosPropios = new ListaEnlazada();
+    /** Copia inmutable de los datos cargados para reutilizar en cada ordenamiento. */
+    private ListaEnlazada listaCargada = new ListaEnlazada();
 
+    // ─────────────────────────────────────────────────────────────────────────
     @FXML
     public void initialize() {
-        // Configurar las columnas de las tablas usando las propiedades de tu objeto POJO
+        // Columnas tabla original
         colRegionOrig.setCellValueFactory(new PropertyValueFactory<>("region"));
-        colUnitsOrig.setCellValueFactory(new PropertyValueFactory<>("unitsSold"));
-        
+        colUnitsOrig .setCellValueFactory(new PropertyValueFactory<>("unitsSold"));
+
+        // Columnas tabla ordenada
         colRegionOrd.setCellValueFactory(new PropertyValueFactory<>("region"));
-        colUnitsOrd.setCellValueFactory(new PropertyValueFactory<>("unitsSold"));
+        colUnitsOrd .setCellValueFactory(new PropertyValueFactory<>("unitsSold"));
 
         tablaOriginal.setItems(datosOriginales);
         tablaOrdenada.setItems(datosOrdenados);
-        
-        // Inicializar combos con textos
-        comboArchivo.setItems(FXCollections.observableArrayList(
-            "Sales_democienmil.csv", "Sales_demodocemil.csv", "Sales_demoseismil.csv"
-        ));
-        
+
+        // ── CSV disponibles en la raíz del proyecto ──────────────────────────
+        String raiz  = System.getProperty("user.dir");
+        File[] csvs  = new File(raiz).listFiles(
+                f -> f.isFile() && f.getName().toLowerCase().endsWith(".csv"));
+
+        ObservableList<String> nombres = FXCollections.observableArrayList();
+        if (csvs != null) {
+            for (File f : csvs) {
+                nombres.add(f.getName());
+            }
+        }
+        if (nombres.isEmpty()) {
+            nombres.add("(No hay archivos .csv en la raíz del proyecto)");
+        }
+        comboArchivo.setItems(nombres);
+
+        // ── Algoritmos ───────────────────────────────────────────────────────
         comboAlgoritmo.setItems(FXCollections.observableArrayList(
-            "Hundimiento (Gnome Sort)", "Burbuja", "Burbuja mejorada", 
-            "Selección lineal", "Selección con intercambio", "Quick sort", 
-            "Radix Sort", "Merge Sort", "Shell Sort"
+            "Hundimiento (Gnome Sort)",
+            "Burbuja",
+            "Burbuja mejorada",
+            "Selección lineal",
+            "Selección con intercambio",
+            "Quick sort",
+            "Radix Sort",
+            "Merge Sort",
+            "Shell Sort"
         ));
+
+        // ── Columna de orden ─────────────────────────────────────────────────
+        comboColumna.setItems(FXCollections.observableArrayList(
+            "Region (texto)",
+            "Units Sold (número)"
+        ));
+        comboColumna.getSelectionModel().selectLast();   // número por defecto
+
+        // ── Dirección ────────────────────────────────────────────────────────
+        comboDireccion.setItems(FXCollections.observableArrayList(
+            "Ascendente",
+            "Descendente"
+        ));
+        comboDireccion.getSelectionModel().selectFirst();
     }
 
+    // ── Carga del CSV seleccionado ────────────────────────────────────────────
     @FXML
     private void handleSeleccionArchivo() {
-        String archivoSeleccionado = comboArchivo.getValue();
-        if (archivoSeleccionado != null) {
-            try {
-                // RECOMENDACIÓN: Modificar tu CsvReader para que devuelva tu ListaEnlazada
-                // o cargar directamente los datos recorriéndolos.
-                
-                datosOriginales.clear();
-                datosOrdenados.clear();
-                
-                // Ejemplo asumiendo que procesas el archivo y lo metes en tu ListaEnlazada:
-                // listaDatosPropios = CsvReader.leerCSV(archivoSeleccionado);
-                
-                lblStatus.setText("Estado: Archivo '" + archivoSeleccionado + "' cargado exitosamente.");
-            } catch (Exception ex) {
-                mostrarAlerta("Error de Lectura", "Error al leer el archivo CSV: " + ex.getMessage());
+        String nombreArchivo = comboArchivo.getValue();
+        if (nombreArchivo == null || nombreArchivo.startsWith("(")) return;
+
+        String ruta   = System.getProperty("user.dir") + File.separator + nombreArchivo;
+        File   archivo = new File(ruta);
+
+        if (!archivo.exists()) {
+            mostrarAlerta("Archivo no encontrado", "No se encontró:\n" + ruta);
+            return;
+        }
+
+        try {
+            // 1. Leer CSV → lista propia
+            listaCargada = LectorCSV.leerCSV(ruta);
+
+            // 2. Limpiar tablas
+            datosOriginales.clear();
+            datosOrdenados.clear();
+
+            // 3. Recorrer la lista nodo a nodo y llenar la tabla original
+            Nodo nodo = listaCargada.obtenerNodo(0); // devuelve cabeza (índice 0)
+            while (nodo != null) {
+                datosOriginales.add(new Registro(nodo.texto, nodo.dato));
+                nodo = nodo.siguiente;
             }
+
+            lblStatus.setText("Estado: '" + nombreArchivo
+                    + "' cargado — " + datosOriginales.size() + " registros.");
+
+        } catch (IOException ex) {
+            mostrarAlerta("Error de lectura", ex.getMessage());
         }
     }
 
+    // ── Ordenamiento ──────────────────────────────────────────────────────────
     @FXML
     private void handleEjecutarOrdenamiento() {
         if (datosOriginales.isEmpty()) {
-            mostrarAlerta("Sin datos", "Por favor, cargue un archivo CSV antes de ordenar.");
+            mostrarAlerta("Sin datos", "Primero cargue un archivo CSV.");
+            return;
+        }
+        if (comboAlgoritmo.getValue() == null) {
+            mostrarAlerta("Sin algoritmo", "Seleccione un algoritmo.");
             return;
         }
 
-        int algoIdx = comboAlgoritmo.getSelectionModel().getSelectedIndex();
+        int     algoIdx      = comboAlgoritmo.getSelectionModel().getSelectedIndex();
         boolean ordenarTexto = comboColumna.getSelectionModel().getSelectedIndex() == 0;
-        boolean ascendente = comboDireccion.getSelectionModel().getSelectedIndex() == 0;
+        boolean ascendente   = comboDireccion.getSelectionModel().getSelectedIndex() == 0;
 
         if (algoIdx == 6 && ordenarTexto) {
-            mostrarAlerta("Algoritmo No Soportado", "Radix Sort no soporta ordenamiento alfanumérico.");
+            mostrarAlerta("No soportado", "Radix Sort no soporta ordenamiento por texto.");
             return;
         }
 
-        // Aquí instancias tu ListaEnlazada propia y ejecutas el ordenamiento analogo a tu código original
+        // 1. Crear instancia del algoritmo elegido y copiar datos originales
         ListaEnlazada listaSort = obtenerAlgoritmo(algoIdx);
-        
-        // Pasas los datos de tu lista guardada a la lista que va a ordenar
-        // ... (Algoritmo de ordenamiento propio)
-        
-        long startTime = System.nanoTime();
-        listaSort.ordenar();
-        long endTime = System.nanoTime();
+        listaSort.setOrdenarPorTexto(ordenarTexto);
+        listaSort.setAscendente(ascendente);
 
-        // Para mostrar los resultados en la tabla ordenada, recorres tu ListaEnlazada propia
-        // y añades los elementos a 'datosOrdenados' (que es ObservableList)
+        Nodo nodo = listaCargada.obtenerNodo(0);
+        while (nodo != null) {
+            listaSort.insertar(nodo.texto, nodo.dato);
+            nodo = nodo.siguiente;
+        }
+
+        // 2. Ordenar y medir tiempo
+        long inicio = System.nanoTime();
+        listaSort.ordenar();
+        long fin = System.nanoTime();
+
+        // 3. Volcar resultado en la tabla ordenada
+        datosOrdenados.clear();
+
+        Nodo resultado = listaSort.obtenerNodo(0);
+
+        if (!ascendente) {
+            // Invertir: cargar en arreglo nativo y leer al revés
+            int n = listaSort.longitud();
+            Registro[] tmp = new Registro[n];
+            int i = 0;
+            while (resultado != null) {
+                tmp[i++] = new Registro(resultado.texto, resultado.dato);
+                resultado = resultado.siguiente;
+            }
+            for (int j = n - 1; j >= 0; j--) {
+                datosOrdenados.add(tmp[j]);
+            }
+        } else {
+            while (resultado != null) {
+                datosOrdenados.add(new Registro(resultado.texto, resultado.dato));
+                resultado = resultado.siguiente;
+            }
+        }
+
+        double ms = (fin - inicio) / 1_000_000.0;
+        lblTiempo.setText(String.format("Tiempo: %.3f ms", ms));
+        lblIteraciones.setText("Registros ordenados: " + datosOrdenados.size());
+        lblStatus.setText("Estado: Ordenado con '"
+                + comboAlgoritmo.getValue() + "' ("
+                + (ascendente ? "↑" : "↓") + ").");
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    private ListaEnlazada obtenerAlgoritmo(int idx) {
+        switch (idx) {
+            case 0:  return new GnomeSort();
+            case 1:  return new BurbujaSort();
+            case 2:  return new BurbujaMejoradaSort();
+            case 3:  return new SeleccionLinealSort();
+            case 4:  return new SeleccionIntercambioSort();
+            case 5:  return new QuickSort();
+            case 6:  return new RadixSort();
+            case 7:  return new MergeSort();
+            case 8:  return new ShellSort();
+            default: return new BurbujaSort();
+        }
     }
 
     private void mostrarAlerta(String titulo, String mensaje) {
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(mensaje);
         alert.showAndWait();
     }
-    
-    private ListaEnlazada obtenerAlgoritmo(int idx) {
-        switch (idx) {
-            case 0: return new GnomeSort();
-            case 1: return new BurbujaSort();
-            // ... resto de tus algoritmos
-            default: return new BurbujaSort();
-        }
-    }
 }
-
