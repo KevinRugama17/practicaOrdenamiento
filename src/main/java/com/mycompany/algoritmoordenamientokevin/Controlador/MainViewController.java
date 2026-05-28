@@ -40,26 +40,25 @@ public class MainViewController {
     @FXML private ComboBox<String> comboColumna;
     @FXML private ComboBox<String> comboDireccion;
 
-    // ── Etiquetas ─────────────────────────────────────────────────────────────
+
     @FXML private Label lblStatus;
     @FXML private Label lblIteraciones;
     @FXML private Label lblTiempo;
 
-    // ── Datos ─────────────────────────────────────────────────────────────────
+   
     private final ObservableList<Registro> datosOriginales = FXCollections.observableArrayList();
     private final ObservableList<Registro> datosOrdenados  = FXCollections.observableArrayList();
 
-    /** Copia inmutable de los datos cargados para reutilizar en cada ordenamiento. */
+
     private ListaEnlazada listaCargada = new ListaEnlazada();
 
-    // ─────────────────────────────────────────────────────────────────────────
-    @FXML
+        @FXML
     public void initialize() {
-        // Columnas tabla original
+    
         colRegionOrig.setCellValueFactory(new PropertyValueFactory<>("region"));
         colUnitsOrig .setCellValueFactory(new PropertyValueFactory<>("unitsSold"));
 
-        // Columnas tabla ordenada
+   
         colRegionOrd.setCellValueFactory(new PropertyValueFactory<>("region"));
         colUnitsOrd .setCellValueFactory(new PropertyValueFactory<>("unitsSold"));
 
@@ -82,7 +81,7 @@ public class MainViewController {
         }
         comboArchivo.setItems(nombres);
 
-        // ── Algoritmos ───────────────────────────────────────────────────────
+    
         comboAlgoritmo.setItems(FXCollections.observableArrayList(
             "Hundimiento (Gnome Sort)",
             "Burbuja",
@@ -95,14 +94,14 @@ public class MainViewController {
             "Shell Sort"
         ));
 
-        // ── Columna de orden ─────────────────────────────────────────────────
+  
         comboColumna.setItems(FXCollections.observableArrayList(
             "Region (texto)",
             "Units Sold (número)"
         ));
-        comboColumna.getSelectionModel().selectLast();   // número por defecto
+        comboColumna.getSelectionModel().selectLast();  
 
-        // ── Dirección ────────────────────────────────────────────────────────
+    
         comboDireccion.setItems(FXCollections.observableArrayList(
             "Ascendente",
             "Descendente"
@@ -110,7 +109,7 @@ public class MainViewController {
         comboDireccion.getSelectionModel().selectFirst();
     }
 
-    // ── Carga del CSV seleccionado ────────────────────────────────────────────
+  
     @FXML
     private void handleSeleccionArchivo() {
         String nombreArchivo = comboArchivo.getValue();
@@ -147,7 +146,7 @@ public class MainViewController {
         }
     }
 
-    // ── Ordenamiento ──────────────────────────────────────────────────────────
+   
     @FXML
     private void handleEjecutarOrdenamiento() {
         if (datosOriginales.isEmpty()) {
@@ -168,7 +167,7 @@ public class MainViewController {
             return;
         }
 
-        // 1. Crear instancia del algoritmo elegido y copiar datos originales
+      
         ListaEnlazada listaSort = obtenerAlgoritmo(algoIdx);
         listaSort.setOrdenarPorTexto(ordenarTexto);
         listaSort.setAscendente(ascendente);
@@ -216,7 +215,7 @@ public class MainViewController {
                 + (ascendente ? "↑" : "↓") + ").");
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+  
     private ListaEnlazada obtenerAlgoritmo(int idx) {
         switch (idx) {
             case 0:  return new GnomeSort();

@@ -12,7 +12,8 @@ import javafx.beans.property.SimpleStringProperty;
  * @author kevin
  */
 public class Registro {
-   private final SimpleStringProperty  region;
+    
+    private final SimpleStringProperty  region;
     private final SimpleIntegerProperty unitsSold;
  
     public Registro(String region, int unitsSold) {
@@ -20,12 +21,14 @@ public class Registro {
         this.unitsSold = new SimpleIntegerProperty(unitsSold);
     }
  
-    // ── Getters normales ──────────────────────────────────────────────────────
-    public String getRegion()   { return region.get(); }
-    public int    getUnitsSold(){ return unitsSold.get(); }
+    public String getRegion()   { 
+        return region.get(); 
+    }
+    public int getUnitsSold(){ 
+        return unitsSold.get(); 
+    }
  
-   
-    public SimpleStringProperty  regionProperty()    { 
+    public SimpleStringProperty  regionProperty() { 
         return region;
     }
     public SimpleIntegerProperty unitsSoldProperty() { 
